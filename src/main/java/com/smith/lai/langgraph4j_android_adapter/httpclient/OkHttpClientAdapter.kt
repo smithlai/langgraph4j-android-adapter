@@ -1,5 +1,6 @@
 package com.smith.lai.langgraph4j_android_adapter.httpclient
 
+import android.util.Log
 import dev.langchain4j.http.client.HttpClient
 import dev.langchain4j.http.client.HttpMethod
 import dev.langchain4j.http.client.HttpRequest
@@ -16,7 +17,7 @@ import java.io.IOException
 import java.io.InputStream
 
 class OkHttpClientAdapter(private val okHttpClient: OkHttpClient) : HttpClient {
-
+    private val tag: String? = this::class.qualifiedName
     override fun execute(request: HttpRequest): SuccessfulHttpResponse {
         val okHttpRequest = buildOkHttpRequest(request)
 
@@ -30,7 +31,6 @@ class OkHttpClientAdapter(private val okHttpClient: OkHttpClient) : HttpClient {
 
     override fun execute(request: HttpRequest, parser: ServerSentEventParser, listener: ServerSentEventListener) {
         val okHttpRequest = buildOkHttpRequest(request)
-
         okHttpClient.newCall(okHttpRequest).enqueue(object : okhttp3.Callback {
             override fun onFailure(call: okhttp3.Call, e: IOException) {
                 listener.onError(e)
@@ -94,13 +94,14 @@ class OkHttpClientAdapter(private val okHttpClient: OkHttpClient) : HttpClient {
         try {
             if (!response.isSuccessful) {
                 val errorBody = response.body?.string() ?: "No error details"
+                Log.e(tag, "fatal error: " + errorBody)
+
                 throw HttpException(response.code, errorBody)
             }
 
             val statusCode = response.code
             val headers = response.headers.toMultimap()
             val body = response.body?.string() ?: ""
-
             return SuccessfulHttpResponse.builder()
                 .statusCode(statusCode)
                 .headers(headers)

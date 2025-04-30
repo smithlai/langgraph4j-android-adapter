@@ -4,6 +4,7 @@ import android.util.Log
 import dev.langchain4j.http.client.HttpClient
 import dev.langchain4j.http.client.HttpClientBuilder
 import okhttp3.OkHttpClient
+import okhttp3.Request
 import java.time.Duration
 import java.util.concurrent.TimeUnit
 
@@ -103,6 +104,23 @@ class OkHttpClientBuilder : HttpClientBuilder {
         if (httpClient != null) {
             httpClient!!.shutdown()
             httpClient = null
+        }
+    }
+    fun checkServerConnectivity(baseUrl: String): Boolean {
+        val client = httpClient ?: build()
+
+        val httpRequest = dev.langchain4j.http.client.HttpRequest.builder()
+            .method(dev.langchain4j.http.client.HttpMethod.GET)
+            .url("$baseUrl")
+            .build()
+        return try {
+            Log.d(tag, "Attempting to connect to ${httpRequest.url()}")
+            val response = client.execute(httpRequest)
+            Log.d(tag, "Response code: ${response.statusCode()}")
+            response.statusCode() in 200..299
+        } catch (e: Exception) {
+            Log.e(tag, "Connection failed: ${e.message}")
+            false
         }
     }
 }
