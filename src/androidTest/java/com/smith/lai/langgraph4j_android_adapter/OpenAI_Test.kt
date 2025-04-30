@@ -1,5 +1,6 @@
 package com.smith.lai.langgraph4j_android_adapter
 
+import com.smith.lai.langgraph4j_android_adapter.httpclient.OkHttpClientBuilder
 import dev.langchain4j.data.message.UserMessage
 import dev.langchain4j.model.openai.OpenAiChatModel
 import okhttp3.OkHttpClient
@@ -8,6 +9,7 @@ import org.bsc.langgraph4j.RunnableConfig
 import org.bsc.langgraph4j.agentexecutor.AgentExecutor
 import org.bsc.langgraph4j.checkpoint.MemorySaver
 import org.junit.Test
+import java.time.Duration
 import java.util.concurrent.TimeUnit
 
 class OpenAI_Test {
@@ -24,18 +26,9 @@ class OpenAI_Test {
 
         println("======== 开始 AgentExecutor 测试 ========")
 
-        val okHttpClient = OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
-            .build()
-
-        val httpClientAdapter =
-            com.smith.lai.langgraph4j_android_adapter.httpclient.OkHttpClientAdapter(okHttpClient)
-        val httpClientBuilder =
-            com.smith.lai.langgraph4j_android_adapter.httpclient.OkHttpClientBuilder(
-                httpClientAdapter
-            )
+        val httpClientBuilder = OkHttpClientBuilder()
+        httpClientBuilder.connectTimeout(Duration.ofSeconds(30))
+            .readTimeout(Duration.ofSeconds(120))
 
         try {
             // Initialize language model with custom HttpClientBuilder
@@ -141,7 +134,7 @@ class OpenAI_Test {
             e.printStackTrace()
         } finally {
             // Clean up OkHttpClient resources
-            httpClientAdapter.shutdown()
+            httpClientBuilder.shutdown()
         }
     }
 }
