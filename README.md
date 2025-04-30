@@ -36,6 +36,23 @@ LlamaAndroid is an Android app for on-device AI inference using LLama models wit
 
    **- `app/build.gradle.kts` (dependencies):**
      ```kotlin
+     android {
+      ......
+      compileOptions {
+         sourceCompatibility = JavaVersion.VERSION_17
+         targetCompatibility = JavaVersion.VERSION_17
+      }
+      kotlinOptions {
+         jvmTarget = "17"
+      }
+      packaging {
+         resources {
+               excludes += "META-INF/INDEX.LIST"
+               excludes += "META-INF/io.netty.versions.properties"
+         }
+      }
+      ....
+     }
      dependencies {
          implementation("org.bsc.langgraph4j:langgraph4j-core:1.5.8")
          implementation("org.bsc.langgraph4j:langgraph4j-langchain4j:1.5.8")
