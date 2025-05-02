@@ -1,36 +1,27 @@
 package com.smith.lai.langgraph4j_android_adapter.localclient
 
 import android.util.Log
+import dev.langchain4j.agent.tool.ToolExecutionRequest
+import dev.langchain4j.agent.tool.ToolSpecification
 import dev.langchain4j.data.message.AiMessage
+import dev.langchain4j.data.message.SystemMessage
 import dev.langchain4j.data.message.UserMessage
+import dev.langchain4j.internal.Json as LangChainJson
 import dev.langchain4j.model.chat.ChatLanguageModel
 import dev.langchain4j.model.chat.request.ChatRequest
 import dev.langchain4j.model.chat.response.ChatResponse
-import dev.langchain4j.agent.tool.ToolSpecification
-import dev.langchain4j.agent.tool.ToolExecutionRequest
-import dev.langchain4j.internal.Json as LangChainJson
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json as KotlinxJson
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
-class LocalChatModel(
-    private val inferenceEngine: InferenceEngine,
-    private val modelPath: String,
-    private val toolSpecifications: List<ToolSpecification> = emptyList()
+abstract class LocalLLMInferenceEngine(
+    val toolSpecifications: List<ToolSpecification> = emptyList()
 ) : ChatLanguageModel {
-
-    private var isLoaded = false
-    private val tag: String? = this::class.simpleName
-    private var isFirstSend = true
-
-    private val toolPrompt: String by lazy {
+    protected val tag: String? = this::class.simpleName
+    val toolPrompt: String by lazy {
         if (toolSpecifications.isEmpty()) return@lazy ""
         val toolsJson = toolSpecifications.map { spec ->
             mapOf(
@@ -74,48 +65,32 @@ Example:
 """.trimIndent()
     }
 
-    init {
-        runBlocking {
-            try {
-                withContext(Dispatchers.IO) {
-                    inferenceEngine.load(modelPath)
-                    isLoaded = true
-                    Log.i(tag, "Model loaded successfully: $modelPath")
-                }
-            } catch (e: Exception) {
-                Log.e(tag, "Failed to load model at $modelPath", e)
-                throw IllegalStateException("Failed to load model at $modelPath", e)
-            }
-        }
-    }
-
-    fun generate(message: String): Flow<String> {
-        if (!isLoaded) {
-            throw IllegalStateException("Model not loaded")
-        }
-        val systemPrompt = if (isFirstSend && toolPrompt.isNotEmpty()) toolPrompt else null
-        isFirstSend = false
-        Log.d(tag, "Generating with message: $message, systemPrompt: $systemPrompt")
-        return inferenceEngine.generate(message, systemPrompt)
-            .flowOn(Dispatchers.IO)
-            .catch { e ->
-                Log.e(tag, "Failed to generate response", e)
-                emit("Error: ${e.message}")
-            }
-    }
 
     override fun chat(chatRequest: ChatRequest): ChatResponse {
-        if (!isLoaded) {
-            throw IllegalStateException("Model not loaded")
+        val messages = chatRequest.messages();
+        //todo: agentexecutor/Agent.java added a redundent "You are a helpful assistant"
+
+        messages.forEachIndexed { index, chatMessage ->
+            when(chatMessage){
+                is UserMessage -> {
+                    Log.e(tag, "Adding ${chatMessage.name()}: " + chatMessage.singleText())
+                    addUserMessage(chatMessage.singleText())
+                }
+                is AiMessage -> {
+                    Log.e(tag, "Adding AI: " + chatMessage.text())
+                    addAssistantMessage(chatMessage.text())
+                }
+                is SystemMessage -> {
+                    Log.e(tag, "Adding System: " + chatMessage.text())
+                    addSystemPrompt(chatMessage.text())
+                }
+            }
         }
-        val userMessage = chatRequest.messages()
-            .filterIsInstance<UserMessage>()
-            .lastOrNull()?.singleText()
-            ?: throw IllegalArgumentException("No user message found in request")
 
         val responseText = runBlocking {
             val responses = mutableListOf<String>()
-            generate(userMessage).collect { responses.add(it) }
+            //todo: Add a fun start_generate with empty prompt
+            generate("").collect { responses.add(it) }
             responses.joinToString("")
         }
         Log.d(tag, "Model output: $responseText")
@@ -176,4 +151,10 @@ Example:
                 .build()
         }
     }
+
+
+    abstract fun addUserMessage(message: String)
+    abstract fun addSystemPrompt(prompt: String)
+    abstract fun addAssistantMessage(message: String)
+    abstract fun generate(prompt: String): Flow<String>
 }

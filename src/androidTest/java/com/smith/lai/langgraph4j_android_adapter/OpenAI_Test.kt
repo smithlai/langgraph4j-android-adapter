@@ -81,7 +81,7 @@ class OpenAI_Test {
                 mapOf("messages" to UserMessage.from("Translate \"Hello, my master.\" into cat language")),
                 config
             )
-            StateGraph.END
+
             println("[All Steps]")
             var last_message:  ChatMessage? = null
             iterator.forEachIndexed { index, step ->
@@ -120,27 +120,7 @@ class OpenAI_Test {
                 }
 
             }
-//            for (step in iterator) {
-//                val stateMap: Map<String, Any> = step.state().data()
-//                println("111 " + stateMap.keys.toString())
-//                println("222 " + step.state().lastMessage() is ToolExecutionResultMessage)
-//                println("333 " + step.state().finalResponse())
-//                if (stateMap.containsKey("agent_response")) {
-//                    val response = stateMap["agent_response"].toString()
-//                    println("Final response: $response")
-//                    emit(response) // Emit the response to the Flow
-//                } else {
-//
-//                    val stepStr = step.toString()
-//                    if (stepStr.contains("ToolExecutionResultMessage")) {
-//                        println(stepStr)
-//                        println("Tool response: ${stepStr.substringAfter("text = ").substringBefore("}")}")
-//                    } else if (stepStr.contains("toolExecutionRequests")) {
-//                        val toolName = stepStr.substringAfter("name = \"").substringBefore("\",")
-//                        println("Tool call: $toolName")
-//                    }
-//                }
-//            }
+
 
             println("\n======== Test Complete ========")
         } catch (e: Exception) {
