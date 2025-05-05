@@ -23,19 +23,35 @@ class Llama3_2_ToolAdapter : LLMToolAdapter() {
     override fun createToolPrompt(toolSpecifications: List<ToolSpecification>): String {
         if (toolSpecifications.isEmpty()) return ""
         val functionDefinitions = toolSchemas(toolSpecifications)
+//        return """
+//You are given a question and a set of possible functions (tools).
+//Based on the question, you may need to make one or more function/tool calls to achieve the purpose.
+//
+//If you decide to invoke any of the function(s), you MUST put it in the format of [func_name1(params_name1=params_value1, params_name2=params_value2...), func_name2(params)]
+//Even if a function has no parameters, you MUST still include the parentheses: [func_name()]
+//You SHOULD NOT include any other text in the response.
+//
+//Here is a list of tools in JSON format that you can invoke.
+//
+//$functionDefinitions
+//
+//you can answer it directly only if there's no suitable tool call
+//""".trimIndent()
         return """
-You are given a question and a set of possible functions (tools). 
-Based on the question, you may need to make one or more function/tool calls to achieve the purpose. 
-
-If you decide to invoke any of the function(s), you MUST put it in the format of [func_name1(params_name1=params_value1, params_name2=params_value2...), func_name2(params)]
-Even if a function has no parameters, you MUST still include the parentheses: [func_name()]
+You are an expert in composing functions. You are given a question and a set of possible functions. 
+Based on the question, you will need to make one or more function/tool calls to achieve the purpose. 
+If none of the functions can be used, point it out. If the given question lacks the parameters required by the function,also point it out. You should only return the function call in tools call sections.
 You SHOULD NOT include any other text in the response.
+Here is a list of functions in JSON format that you can invoke.$functionDefinitions
 
-Here is a list of tools in JSON format that you can invoke.
+If you decide to invoke any of the function(s), you MUST put it in the format of 
+```
+[func_name1(params_name1=params_value1, params_name2=params_value2...), func_name2(params)]
+```
 
-$functionDefinitions
-
-you can answer it directly only if there's no suitable tool call 
+When you receive the results of a tool call, you should respond with a helpful answer based on those results.
+Do NOT call additional tools unless the user asks a new question that requires different information.
+Format your answer in a clear, human-readable way.
 """.trimIndent()
     }
 
