@@ -117,7 +117,10 @@ Below are examples demonstrating how to use the `langgraph4j-android-adapter` fo
 
 This example shows how to run an `AgentExecutor` with OpenAI's GPT model.
 
-You can also directly run the Unittest in `androidTest/java/com/smith/lai/langgraph4j_android_adapter/OpenAI_Test.kt`
+You can also directly run the Unittest in  
+`androidTest/java/com/smith/lai/langgraph4j_android_adapter/OpenAI_Test.kt`
+__OR__
+`androidTest/java/com/smith/lai/langgraph4j_android_adapter/Ollama_Test.kt`
 ```kotlin
 package com.example.yourapp
 

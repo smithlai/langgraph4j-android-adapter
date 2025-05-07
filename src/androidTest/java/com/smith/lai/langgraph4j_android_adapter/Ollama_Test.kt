@@ -5,7 +5,7 @@ import dev.langchain4j.data.message.AiMessage
 import dev.langchain4j.data.message.ChatMessage
 import dev.langchain4j.data.message.ToolExecutionResultMessage
 import dev.langchain4j.data.message.UserMessage
-import dev.langchain4j.model.openai.OpenAiChatModel
+import dev.langchain4j.model.ollama.OllamaChatModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.runBlocking
@@ -18,40 +18,34 @@ import org.junit.Test
 import java.time.Duration
 import kotlin.jvm.optionals.getOrNull
 
-class OpenAI_Test {
+class Ollama_Test {
 
     @Test
-    fun testAgentExecutor(){
+    fun testAgentExecutor() {
         val test = _testAgentExecutor()
         runBlocking {
-            test.collect{
-                //do nothing
+            test.collect {
+                // do nothing
             }
         }
     }
+
     private fun _testAgentExecutor(): Flow<String> = flow {
-        val apiKey = BuildConfig.OPENAI_API_KEY
-
-        if (apiKey.isEmpty()) {
-            println("Error: API Key is empty")
-            return@flow // Exit the flow if no API key
-        }
-
         println("======== AgentExecutor Start ========")
+
 
         val httpClientBuilder = OkHttpClientBuilder()
         httpClientBuilder.connectTimeout(Duration.ofSeconds(30))
             .readTimeout(Duration.ofSeconds(120))
 
         try {
-            val chatLanguageModel = OpenAiChatModel.builder()
-                .apiKey(apiKey)
-                .baseUrl("https://api.openai.com/v1")
+            // Initialize OllamaChatModel with configured URL
+            val chatLanguageModel = OllamaChatModel.builder()
+                .baseUrl(BuildConfig.OLLAMA_URL) // Configured in local.properties
+//                .modelName("llama3.2:3b-instruct-q4_K_M") // Specific quantized model
+                .modelName("hhao/qwen2.5-coder-tools:latest") // Specific quantized model
                 .httpClientBuilder(httpClientBuilder)
-                .modelName("gpt-4.1-nano")
                 .temperature(0.0)
-                .maxTokens(2000)
-                .maxRetries(2)
                 .logRequests(true)
                 .logResponses(true)
                 .build()
@@ -63,7 +57,6 @@ class OpenAI_Test {
                 .chatLanguageModel(chatLanguageModel)
                 .toolSpecification(DummyTestTools())
                 .build()
-
 
             val saver = MemorySaver()
             val compileConfig = CompileConfig.builder()
@@ -84,10 +77,9 @@ class OpenAI_Test {
             )
 
             println("[All Steps]")
-            var last_message:  ChatMessage? = null
+            var last_message: ChatMessage? = null
             iterator.forEachIndexed { index, step ->
-//                println("[$index]Raw: $step")
-                when(step.node()){
+                when (step.node()) {
                     StateGraph.END -> {
                         println("[${step.node()}]Final Graph output: ${step.state().finalResponse().getOrNull()}")
                     }
@@ -100,7 +92,7 @@ class OpenAI_Test {
                             println("   Final answer: $final_message")
                         } else if (latest_message_opt.isPresent) {
                             val latestmessage = latest_message_opt.get()
-                            if (latestmessage.equals(last_message)){
+                            if (latestmessage.equals(last_message)) {
                                 return@forEachIndexed
                             }
                             if (latestmessage is ToolExecutionResultMessage) {
@@ -109,9 +101,8 @@ class OpenAI_Test {
                                 val toolExecutionRequests = latestmessage.toolExecutionRequests()
                                 if (toolExecutionRequests.size > 0) {
                                     val request = toolExecutionRequests.joinToString(",", transform = {
-                                                                "${it.name()} ${it.arguments()}"
-                                                            }
-                                    )
+                                        "${it.name()} ${it.arguments()}"
+                                    })
                                     println("   Tool Execution Requests: $request")
                                 }
                             }

@@ -63,6 +63,7 @@ dependencies {
     // LangChain4j dependencies - Moved to implementation for main
     implementation("dev.langchain4j:langchain4j:1.0.0-beta3")
     implementation("dev.langchain4j:langchain4j-open-ai:1.0.0-beta3")
+    implementation("dev.langchain4j:langchain4j-ollama:1.0.0-beta3")
     implementation("com.squareup.okhttp3:okhttp:4.12.0") // For OkHttpClientAdapter
 
     // Ktor dependencies (optional, keep if needed)
