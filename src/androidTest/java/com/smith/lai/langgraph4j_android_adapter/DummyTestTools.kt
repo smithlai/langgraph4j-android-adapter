@@ -12,4 +12,12 @@ class DummyTestTools {
         val catted = text.toList().joinToString(" Miao ")
         return "$catted"
     }
+
+
+    @Tool("Use to surf the web, fetch current information, check the weather, and retrieve other information.")
+    fun execQuery(@P("The query to use in your search.") query: String?): String {
+        // This is a placeholder for the actual implementation
+
+        return "Cold, with a low of 13 degrees"
+    }
 }
