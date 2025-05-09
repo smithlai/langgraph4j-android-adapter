@@ -61,7 +61,7 @@ class OpenAI_Test {
             // Build AgentExecutor with DummyTestTools
             val stateGraph = AgentExecutor.builder()
                 .chatModel(chatLanguageModel)
-                .toolSpecification(DummyTestTools())
+                .toolsFromObject(DummyTestTools())
                 .build()
 
 

@@ -91,8 +91,7 @@ class Ollama_Test {
 //                """{{raw_text}}"""
 """<|begin_of_text|><|start_header_id|>user<|end_header_id|>
 {{raw_text}} <|eot_id|><|start_header_id|>assistant<|end_header_id|>
-"""
-)
+""")
             val prompt = prompt_template.apply(mapOf("raw_text" to raw_text))
                 .toUserMessage()
 
