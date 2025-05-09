@@ -7,7 +7,7 @@ import dev.langchain4j.data.message.AiMessage
 import dev.langchain4j.data.message.SystemMessage
 import dev.langchain4j.data.message.ToolExecutionResultMessage
 import dev.langchain4j.data.message.UserMessage
-import dev.langchain4j.model.chat.ChatLanguageModel
+import dev.langchain4j.model.chat.ChatModel
 import dev.langchain4j.model.chat.request.ChatRequest
 import dev.langchain4j.model.chat.response.ChatResponse
 import kotlinx.coroutines.flow.Flow
@@ -16,7 +16,7 @@ import kotlinx.coroutines.runBlocking
 abstract class LocalLLMInferenceEngine(
     var toolSpecifications: List<ToolSpecification> = emptyList(),
     var toolAdapter: LLMToolAdapter
-) : ChatLanguageModel {
+) : ChatModel {
     protected val tag: String? = this::class.simpleName
     private var processed_index = -1
     val toolPrompt: String
@@ -27,6 +27,9 @@ abstract class LocalLLMInferenceEngine(
     }
     fun setToolSpecitications(_toolSpecifications: List<ToolSpecification>) {
         toolSpecifications = _toolSpecifications
+    }
+    fun reset(){
+        processed_index = 0
     }
     override fun chat(chatRequest: ChatRequest): ChatResponse {
 //        val messages = chatRequest.messages()
@@ -50,9 +53,14 @@ abstract class LocalLLMInferenceEngine(
                 }
                 is ToolExecutionResultMessage -> {
                     if (processed_index < index) {
+                        Log.i(tag, (chatMessage as ToolExecutionResultMessage).toString())
                         Log.e(tag, "[$index.]Adding Tool Response (${chatMessage.toolName()}): ${chatMessage.text()}")
-//                        addUserMessage("The ${chatMessage.toolName()} tool returns: \"${chatMessage.text()}\", keep answering the question.")
-                        trigger = UserMessage.from("The ${chatMessage.toolName()} tool returns: \"${chatMessage.text()}\", keep answering the question.")
+
+                        if (chatMessage.text().isNotEmpty()) {
+                            trigger =
+                                UserMessage.from("The ${chatMessage.toolName()} tool returns: \"${chatMessage.text()}\"")
+                            addUserMessage(trigger!!.singleText())
+                        }
                         processed_index=index
                     }
                 }
@@ -86,7 +94,8 @@ abstract class LocalLLMInferenceEngine(
             val responses = mutableListOf<String>()
             if (trigger != null) {
                 generate(trigger!!.singleText().toString()).collect { responses.add(it) }
-            }else{
+            }
+            else{
                 generate("").collect { responses.add(it) }
             }
             responses.joinToString("")

@@ -44,8 +44,19 @@ android {
     }
     packaging {
         resources {
-            excludes += "META-INF/INDEX.LIST"
-            excludes += "META-INF/io.netty.versions.properties"
+            excludes += listOf(
+                // for langgraph4j
+                "META-INF/INDEX.LIST",
+                "META-INF/io.netty.versions.properties",
+                // for rag
+                "META-INF/DEPENDENCIES",
+                "META-INF/DEPENDENCIES.txt",
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.txt",
+                "META-INF/NOTICE",
+                "META-INF/NOTICE.txt",
+                "/META-INF/{AL2.0,LGPL2.1}"
+            )
         }
     }
     buildFeatures {
@@ -56,9 +67,9 @@ android {
 
 dependencies {
     // LangGraph4j dependencies
-    implementation("org.bsc.langgraph4j:langgraph4j-core:1.5.8")
-    implementation("org.bsc.langgraph4j:langgraph4j-langchain4j:1.5.8")
-    implementation("org.bsc.langgraph4j:langgraph4j-agent-executor:1.5.8")
+    implementation("org.bsc.langgraph4j:langgraph4j-core:1.5.9")
+    implementation("org.bsc.langgraph4j:langgraph4j-langchain4j:1.5.9")
+    implementation("org.bsc.langgraph4j:langgraph4j-agent-executor:1.5.9")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
     // LangChain4j dependencies - Moved to implementation for main
     implementation("dev.langchain4j:langchain4j:1.0.0-beta3")

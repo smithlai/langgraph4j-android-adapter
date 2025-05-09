@@ -315,6 +315,39 @@ object LocalLLMExample {
 
 ## Troubleshooting
 
+**HTTP Communication Issues**:
+
+Cleartext Traffic Blocked: 
+Android blocks HTTP (cleartext) traffic by default for apps targeting API 28+. 
+If you encounter `java.net.UnknownServiceException: CLEARTEXT communication to <IP> not permitted`, configure(or create) the network security policy in 
+
+`app/src/main/res/xml/network_security_config.xml`:
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">ollama.local</domain>
+        <!-- Add other specific IPs as needed -->
+    </domain-config>
+</network-security-config>
+```
+Modify `AndroidManifest.xml`
+```xml
+    ....
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <application
+        ...
+        android:networkSecurityConfig="@xml/network_security_config"
+        >
+        .....
+        .....
+ 
+    </application>
+
+</manifest>
+```
+
 - **Submodule Not Found**: Ensure `git submodule update --init --recursive` is run after cloning.
 - **Dependency Conflicts**: Verify that all LangGraph4j and LangChain4j dependencies use compatible versions (e.g., 1.5.8 for LangGraph4j, 1.0.0-beta3 for LangChain4j).
 - **Model Loading Failure**: Check the model path and ensure the model file is accessible and compatible with your LLM library.

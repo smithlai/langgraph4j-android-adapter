@@ -4,8 +4,9 @@ import com.smith.lai.langgraph4j_android_adapter.httpclient.OkHttpClientBuilder
 import dev.langchain4j.data.message.AiMessage
 import dev.langchain4j.data.message.ChatMessage
 import dev.langchain4j.data.message.ToolExecutionResultMessage
-import dev.langchain4j.data.message.UserMessage
+import dev.langchain4j.model.input.PromptTemplate
 import dev.langchain4j.model.ollama.OllamaChatModel
+import dev.langchain4j.service.AiServices
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.runBlocking
@@ -17,9 +18,20 @@ import org.bsc.langgraph4j.checkpoint.MemorySaver
 import org.junit.Test
 import java.time.Duration
 import kotlin.jvm.optionals.getOrNull
+import dev.langchain4j.service.SystemMessage as SystemMessage_Annotation
+import dev.langchain4j.service.UserMessage as UserMessage_Annotation
 
 class Ollama_Test {
 
+    interface ToolExecutorInterface {
+        @SystemMessage_Annotation(
+            """You are a helpful AI assistant. 
+                When given a task, analyze what is being asked and use the available tools.
+                Respond with a clear answer. If you need to translate into cat language, use the meow tool.
+            """
+        )
+        fun processRequest(@UserMessage_Annotation request: String): String
+    }
     @Test
     fun testAgentExecutor() {
         val test = _testAgentExecutor()
@@ -44,6 +56,7 @@ class Ollama_Test {
                 .baseUrl(BuildConfig.OLLAMA_URL) // Configured in local.properties
 //                .modelName("llama3.2:3b-instruct-q4_K_M") // Specific quantized model
                 .modelName("hhao/qwen2.5-coder-tools:latest") // Specific quantized model
+//                .modelName("llama3.1:latest") // Specific quantized model
                 .httpClientBuilder(httpClientBuilder)
                 .temperature(0.0)
                 .logRequests(true)
@@ -51,11 +64,13 @@ class Ollama_Test {
                 .build()
 
             println("Model initialized successfully")
-
+            val toolExecutor = AiServices.builder(ToolExecutorInterface::class.java)
+                .chatModel(chatLanguageModel)
+                .build()
             // Build AgentExecutor with DummyTestTools
             val stateGraph = AgentExecutor.builder()
-                .chatLanguageModel(chatLanguageModel)
-                .toolSpecification(DummyTestTools())
+                .chatModel(chatLanguageModel)
+                .toolsFromObject(DummyTestTools())
                 .build()
 
             val saver = MemorySaver()
@@ -70,15 +85,26 @@ class Ollama_Test {
                 .threadId("test1")
                 .build()
 
-            println("\n-------- Test 1: 'Cat language test' --------")
+            println("\n-------- Test 1: [Cat language test] --------")
+            val raw_text = "Translate \"Hello, my master.\" into cat language"
+            val prompt_template = PromptTemplate.from(
+//                """{{raw_text}}"""
+"""<|begin_of_text|><|start_header_id|>user<|end_header_id|>
+{{raw_text}} <|eot_id|><|start_header_id|>assistant<|end_header_id|>
+"""
+)
+            val prompt = prompt_template.apply(mapOf("raw_text" to raw_text))
+                .toUserMessage()
+
             val iterator = graph.streamSnapshots(
-                mapOf("messages" to UserMessage.from("Translate \"Hello, my master.\" into cat language")),
+                mapOf("messages" to listOf(prompt)),  //UserMessage.from(prompt)
                 config
             )
 
             println("[All Steps]")
             var last_message: ChatMessage? = null
             iterator.forEachIndexed { index, step ->
+                println("[$index][${step.toString()}]")
                 when (step.node()) {
                     StateGraph.END -> {
                         println("[${step.node()}]Final Graph output: ${step.state().finalResponse().getOrNull()}")
@@ -113,6 +139,11 @@ class Ollama_Test {
             }
 
             println("\n======== Test Complete ========")
+
+            println("\n-------- Testing AiServices Directly --------")
+            val directResponse = toolExecutor.processRequest(raw_text)
+            println("Direct response: $directResponse")
+
         } catch (e: Exception) {
             println("Error: ${e.message}")
             throw e // Re-throw to let collector handle

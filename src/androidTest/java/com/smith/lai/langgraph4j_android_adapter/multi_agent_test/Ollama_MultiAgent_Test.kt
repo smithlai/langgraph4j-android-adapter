@@ -1,5 +1,6 @@
 package com.smith.lai.langgraph4j_android_adapter.multi_agent_test
 
+import android.util.Log
 import com.smith.lai.langgraph4j_android_adapter.BuildConfig
 import com.smith.lai.langgraph4j_android_adapter.httpclient.OkHttpClientBuilder
 import dev.langchain4j.agent.tool.P
@@ -8,10 +9,11 @@ import dev.langchain4j.agent.tool.ToolExecutionRequest
 import dev.langchain4j.data.message.AiMessage
 import dev.langchain4j.data.message.ChatMessage
 import dev.langchain4j.data.message.ChatMessageType
-import dev.langchain4j.model.chat.ChatLanguageModel
+import dev.langchain4j.model.chat.ChatModel
 import dev.langchain4j.model.ollama.OllamaChatModel
 import dev.langchain4j.model.output.structured.Description
 import dev.langchain4j.data.message.UserMessage
+import dev.langchain4j.model.openai.OpenAiChatModel
 import dev.langchain4j.service.V
 import org.bsc.langgraph4j.StateGraph
 import org.bsc.langgraph4j.action.AsyncEdgeAction.edge_async
@@ -31,6 +33,7 @@ import org.junit.Test
 import java.time.Duration
 
 class Ollama_MultiAgent_Test {
+    val logTag = Ollama_MultiAgent_Test::class.java.name
     @Test
     fun test1() {
         val httpClientBuilder1 = OkHttpClientBuilder()
@@ -39,7 +42,20 @@ class Ollama_MultiAgent_Test {
         httpClientBuilder2.connectTimeout(Duration.ofSeconds(30))
             .readTimeout(Duration.ofSeconds(120))
             .readTimeout(Duration.ofSeconds(120))
-        var model = OllamaChatModel.builder()
+
+        val model =
+//            OpenAiChatModel.builder()
+//            .apiKey(BuildConfig.OPENAI_API_KEY)
+//            .baseUrl("https://api.openai.com/v1")
+//            .httpClientBuilder(httpClientBuilder1)
+//            .modelName("gpt-4.1-nano")
+//            .temperature(0.0)
+//            .maxTokens(2000)
+//            .maxRetries(2)
+//            .logRequests(true)
+//            .logResponses(true)
+//            .build()
+        OllamaChatModel.builder()
 //            .baseUrl("BuildConfig.OLLAMA_URL2")
             .baseUrl(BuildConfig.OLLAMA_URL)
             .httpClientBuilder(httpClientBuilder1)
@@ -49,9 +65,22 @@ class Ollama_MultiAgent_Test {
             .format("json")
 //            .modelName("deepseek-r1:70b")
             .modelName("llama3.1:latest")
+//            .modelName("gemma3")
             .build();
 
-        var modelWithTool = OllamaChatModel.builder()
+        var modelWithTool =
+//            OpenAiChatModel.builder()
+//            .apiKey(BuildConfig.OPENAI_API_KEY)
+//            .baseUrl("https://api.openai.com/v1")
+//            .httpClientBuilder(httpClientBuilder1)
+//            .modelName("gpt-4.1-nano")
+//            .temperature(0.0)
+//            .maxTokens(2000)
+//            .maxRetries(2)
+//            .logRequests(true)
+//            .logResponses(true)
+//            .build()
+            OllamaChatModel.builder()
             .baseUrl(BuildConfig.OLLAMA_URL)
             .httpClientBuilder(httpClientBuilder2)
             .temperature(0.0)
@@ -90,9 +119,8 @@ class Ollama_MultiAgent_Test {
         )
 
         graph.stream(initialState).forEach { event ->
-            println("$event")
+            Log.e(logTag,"$event")
         }
-        AgentExecutor.Serializers.STD
     }
 
 
