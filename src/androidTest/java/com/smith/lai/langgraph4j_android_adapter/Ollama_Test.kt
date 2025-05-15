@@ -3,7 +3,9 @@ package com.smith.lai.langgraph4j_android_adapter
 import com.smith.lai.langgraph4j_android_adapter.httpclient.OkHttpClientBuilder
 import dev.langchain4j.data.message.AiMessage
 import dev.langchain4j.data.message.ChatMessage
+import dev.langchain4j.data.message.SystemMessage
 import dev.langchain4j.data.message.ToolExecutionResultMessage
+import dev.langchain4j.data.message.UserMessage
 import dev.langchain4j.model.input.PromptTemplate
 import dev.langchain4j.model.ollama.OllamaChatModel
 import dev.langchain4j.service.AiServices
@@ -23,15 +25,6 @@ import dev.langchain4j.service.UserMessage as UserMessage_Annotation
 
 class Ollama_Test {
 
-    interface ToolExecutorInterface {
-        @SystemMessage_Annotation(
-            """You are a helpful AI assistant. 
-                When given a task, analyze what is being asked and use the available tools.
-                Respond with a clear answer. If you need to translate into cat language, use the meow tool.
-            """
-        )
-        fun processRequest(@UserMessage_Annotation request: String): String
-    }
     @Test
     fun testAgentExecutor() {
         val test = _testAgentExecutor()
@@ -55,8 +48,8 @@ class Ollama_Test {
             val chatLanguageModel = OllamaChatModel.builder()
                 .baseUrl(BuildConfig.OLLAMA_URL) // Configured in local.properties
 //                .modelName("llama3.2:3b-instruct-q4_K_M") // Specific quantized model
-                .modelName("hhao/qwen2.5-coder-tools:latest") // Specific quantized model
-//                .modelName("llama3.1:latest") // Specific quantized model
+//                .modelName("hhao/qwen2.5-coder-tools:latest") // Specific quantized model
+                .modelName("llama3.1:latest") // Specific quantized model
                 .httpClientBuilder(httpClientBuilder)
                 .temperature(0.0)
                 .logRequests(true)
@@ -64,9 +57,7 @@ class Ollama_Test {
                 .build()
 
             println("Model initialized successfully")
-            val toolExecutor = AiServices.builder(ToolExecutorInterface::class.java)
-                .chatModel(chatLanguageModel)
-                .build()
+
             // Build AgentExecutor with DummyTestTools
             val stateGraph = AgentExecutor.builder()
                 .chatModel(chatLanguageModel)
@@ -88,15 +79,14 @@ class Ollama_Test {
             println("\n-------- Test 1: [Cat language test] --------")
             val raw_text = "Translate \"Hello, my master.\" into cat language"
             val prompt_template = PromptTemplate.from(
-//                """{{raw_text}}"""
 """<|begin_of_text|><|start_header_id|>user<|end_header_id|>
 {{raw_text}} <|eot_id|><|start_header_id|>assistant<|end_header_id|>
 """)
-            val prompt = prompt_template.apply(mapOf("raw_text" to raw_text))
-                .toUserMessage()
+            val prompt1 = UserMessage.from(raw_text)
+            val prompt2 = prompt_template.apply(mapOf("raw_text" to raw_text)).toUserMessage()
 
             val iterator = graph.streamSnapshots(
-                mapOf("messages" to listOf(prompt)),  //UserMessage.from(prompt)
+                mapOf("messages" to listOf(prompt1)),  //
                 config
             )
 
@@ -139,9 +129,21 @@ class Ollama_Test {
 
             println("\n======== Test Complete ========")
 
-            println("\n-------- Testing AiServices Directly --------")
-            val directResponse = toolExecutor.processRequest(raw_text)
-            println("Direct response: $directResponse")
+//    interface ToolExecutorInterface {
+//        @SystemMessage_Annotation(
+//            """You are a helpful AI assistant.
+//                When given a task, analyze what is being asked and use the available tools.
+//                Respond with a clear answer. If you need to translate into cat language, use the meow tool.
+//            """
+//        )
+//        fun processRequest(@UserMessage_Annotation request: String): String
+//    }
+//            val toolExecutor = AiServices.builder(ToolExecutorInterface::class.java)
+//                .chatModel(chatLanguageModel)
+//                .build()
+//            println("\n-------- Testing AiServices Directly --------")
+//            val directResponse = toolExecutor.processRequest(raw_text)
+//            println("Direct response: $directResponse")
 
         } catch (e: Exception) {
             println("Error: ${e.message}")

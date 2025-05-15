@@ -67,14 +67,14 @@ android {
 
 dependencies {
     // LangGraph4j dependencies
-    implementation("org.bsc.langgraph4j:langgraph4j-core:1.5.9")
-    implementation("org.bsc.langgraph4j:langgraph4j-langchain4j:1.5.9")
-    implementation("org.bsc.langgraph4j:langgraph4j-agent-executor:1.5.9")
+    implementation("org.bsc.langgraph4j:langgraph4j-core:1.5.11")
+    implementation("org.bsc.langgraph4j:langgraph4j-langchain4j:1.5.11")
+    implementation("org.bsc.langgraph4j:langgraph4j-agent-executor:1.5.11")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
     // LangChain4j dependencies - Moved to implementation for main
-    implementation("dev.langchain4j:langchain4j:1.0.0-beta3")
-    implementation("dev.langchain4j:langchain4j-open-ai:1.0.0-beta3")
-    implementation("dev.langchain4j:langchain4j-ollama:1.0.0-beta3")
+    implementation("dev.langchain4j:langchain4j:1.0.0-rc1")
+    implementation("dev.langchain4j:langchain4j-open-ai:1.0.0-rc1")
+    implementation("dev.langchain4j:langchain4j-ollama:1.0.0-rc1")
     implementation("com.squareup.okhttp3:okhttp:4.12.0") // For OkHttpClientAdapter
 
     // Ktor dependencies (optional, keep if needed)

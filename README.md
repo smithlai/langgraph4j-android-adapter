@@ -1,10 +1,12 @@
 # LangGraph4j Android Adapter Integration Guide
 
-This guide demonstrates how to integrate the `langgraph4j-android-adapter` module into an Android application to enable on-device AI inference using LangGraph4j and LangChain4j, supporting both local and cloud-based models (e.g., OpenAI, Ollama, or local LLMs).
+This guide demonstrates how to integrate the `langgraph4j-android-adapter` module into an Android application to enable on-device AI inference using [LangGraph4j](https://github.com/bsorrentino/langgraph4j) and LangChain4j, supporting both local and cloud-based models (e.g., OpenAI, Ollama, or local LLMs).
 
 ## Overview
 
-The `langgraph4j-android-adapter` module provides a bridge between LangGraph4j/LangChain4j and Android, enabling developers to run AI inference tasks efficiently. It includes utilities for HTTP clients (e.g., OkHttp) and local inference engines compatible with Android's environment.
+The `langgraph4j-android-adapter` module provides a bridge between [LangGraph4j](https://github.com/bsorrentino/langgraph4j)/LangChain4j and Android, enabling developers to run AI inference tasks efficiently. It includes utilities for HTTP clients (e.g., OkHttp) and local inference engines compatible with Android's environment.
+
+Here's also an [example](https://github.com/smithlai/SmolChat_Langgraph4j_Example/blob/main/app/src/main/java/io/shubham0204/smollmandroid/llm/SmolLMManager.kt) about leveraging langchain4j on SomlChat
 
 ## Prerequisites
 
@@ -81,9 +83,9 @@ dependencies {
     implementation("org.bsc.langgraph4j:langgraph4j-core:1.5.8")
     implementation("org.bsc.langgraph4j:langgraph4j-langchain4j:1.5.8")
     implementation("org.bsc.langgraph4j:langgraph4j-agent-executor:1.5.8")
-    implementation("dev.langchain4j:langchain4j:1.0.0-beta3")
-    implementation("dev.langchain4j:langchain4j-open-ai:1.0.0-beta3")
-    implementation("dev.langchain4j:langchain4j-ollama:1.0.0-beta3")
+    implementation("dev.langchain4j:langchain4j:1.0.0-rc1")
+    implementation("dev.langchain4j:langchain4j-open-ai:1.0.0-rc1")
+    implementation("dev.langchain4j:langchain4j-ollama:1.0.0-rc1")
 
     // LangGraph4j Android Adapter
     implementation(project(":langgraph4j-android-adapter"))
@@ -349,7 +351,7 @@ Modify `AndroidManifest.xml`
 ```
 
 - **Submodule Not Found**: Ensure `git submodule update --init --recursive` is run after cloning.
-- **Dependency Conflicts**: Verify that all LangGraph4j and LangChain4j dependencies use compatible versions (e.g., 1.5.8 for LangGraph4j, 1.0.0-beta3 for LangChain4j).
+- **Dependency Conflicts**: Verify that all LangGraph4j and LangChain4j dependencies use compatible versions (e.g., 1.5.8 for LangGraph4j, 1.0.0-rc1 for LangChain4j).
 - **Model Loading Failure**: Check the model path and ensure the model file is accessible and compatible with your LLM library.
 - **Network Errors**: Confirm that the Internet permission is added and API keys/URLs in `local.properties` are correct.
 - **Tool Execution Issues**: Ensure `ToolSpecification` and `LLMToolAdapter` are correctly configured in `LLMInferenceEngine`.
