@@ -4,9 +4,7 @@ import android.util.Log
 import dev.langchain4j.http.client.HttpClient
 import dev.langchain4j.http.client.HttpClientBuilder
 import okhttp3.OkHttpClient
-import okhttp3.Request
 import java.time.Duration
-import java.util.concurrent.TimeUnit
 
 class OkHttpClientBuilder : HttpClientBuilder {
 
