@@ -1,16 +1,26 @@
 package com.smith.lai.langgraph4j_android_adapter.jinjaparser
 
 class JinjaParser {
+    private val jinjaFunctions = JinjaFunctions()
+
     fun parseAndRender(template: String, context: Map<String, Any>): String {
         val lexer = Lexer(template)
         val tokens = lexer.tokenize()
-        println("tokens:" + tokens.joinToString(","))
         val parser = Parser(tokens)
         val nodes = parser.parse()
-        println("nodes:" + nodes.joinToString(","))
         val mutableContext = context.toMutableMap()
-        mutableContext["strftime_now"] = "function"
+
+        // 使用 JinjaFunctions 自动注册所有函数
+        jinjaFunctions.registerFunctionsToContext(mutableContext)
+
         val renderer = Renderer(nodes, mutableContext)
         return renderer.render()
+    }
+
+    /**
+     * 获取可用的函数列表
+     */
+    fun getAvailableFunctions(): Map<String, String> {
+        return jinjaFunctions.getAvailableFunctions()
     }
 }

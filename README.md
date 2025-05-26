@@ -80,12 +80,12 @@ android {
 
 dependencies {
     // LangGraph4j and LangChain4j dependencies
-    implementation("org.bsc.langgraph4j:langgraph4j-core:1.5.8")
-    implementation("org.bsc.langgraph4j:langgraph4j-langchain4j:1.5.8")
-    implementation("org.bsc.langgraph4j:langgraph4j-agent-executor:1.5.8")
-    implementation("dev.langchain4j:langchain4j:1.0.0-rc1")
-    implementation("dev.langchain4j:langchain4j-open-ai:1.0.0-rc1")
-    implementation("dev.langchain4j:langchain4j-ollama:1.0.0-rc1")
+    implementation("org.bsc.langgraph4j:langgraph4j-core:1.5.12")
+    implementation("org.bsc.langgraph4j:langgraph4j-langchain4j:1.5.12")
+    implementation("org.bsc.langgraph4j:langgraph4j-agent-executor:1.5.12")
+    implementation("dev.langchain4j:langchain4j:1.0.0-beta5")
+    implementation("dev.langchain4j:langchain4j-open-ai:1.0.0-beta5")
+    implementation("dev.langchain4j:langchain4j-ollama:1.0.0-beta5")
 
     // LangGraph4j Android Adapter
     implementation(project(":langgraph4j-android-adapter"))
@@ -351,7 +351,7 @@ Modify `AndroidManifest.xml`
 ```
 
 - **Submodule Not Found**: Ensure `git submodule update --init --recursive` is run after cloning.
-- **Dependency Conflicts**: Verify that all LangGraph4j and LangChain4j dependencies use compatible versions (e.g., 1.5.8 for LangGraph4j, 1.0.0-rc1 for LangChain4j).
+- **Dependency Conflicts**: Verify that all LangGraph4j and LangChain4j dependencies use compatible versions (e.g., 1.5.12 for LangGraph4j, 1.0.0-beta5 for LangChain4j).
 - **Model Loading Failure**: Check the model path and ensure the model file is accessible and compatible with your LLM library.
 - **Network Errors**: Confirm that the Internet permission is added and API keys/URLs in `local.properties` are correct.
 - **Tool Execution Issues**: Ensure `ToolSpecification` and `LLMToolAdapter` are correctly configured in `LLMInferenceEngine`.

@@ -5,6 +5,7 @@ sealed class Token {
     data class Variable(val name: String, val trimLeft: Boolean = false, val trimRight: Boolean = false) : Token()
     data class IfStart(val condition: String) : Token()
     object IfEnd : Token()
+    data class ElseIf(val condition: String) : Token()
     object Else : Token()
     data class ForStart(val item: String, val list: String) : Token()
     object ForEnd : Token()

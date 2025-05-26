@@ -3,41 +3,12 @@ package com.smith.lai.langgraph4j_android_adapter.jinjaparser
 import com.smith.lai.langgraph4j_android_adapter.jinjaparser.data.ConditionNode
 import com.smith.lai.langgraph4j_android_adapter.jinjaparser.data.ListNode
 import com.smith.lai.langgraph4j_android_adapter.jinjaparser.data.Node
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class Renderer(private val nodes: List<Node>, private val context: MutableMap<String, Any>) {
     companion object {
         const val DEBUG_TAG = "JinjaRenderer"
     }
     private val STRFTIME_REGEX = Regex("""strftime_now\s*\(\s*["']([^"']+)["']\s*\)""")
-
-    private fun convertStrftimeToAndroid(format: String): String {
-        return format
-            .replace("%a", "EEE")      // Short weekday (Mon)
-            .replace("%A", "EEEE")     // Full weekday (Monday)
-            .replace("%b", "MMM")      // Short month (Jan)
-            .replace("%B", "MMMM")     // Full month (January)
-            .replace("%c", "EEE MMM dd HH:mm:ss yyyy") // Full date-time
-            .replace("%d", "dd")       // Day of month (01-31)
-            .replace("%H", "HH")       // Hour 24-hour (00-23)
-            .replace("%I", "hh")       // Hour 12-hour (01-12)
-            .replace("%j", "DDD")      // Day of year (001-366)
-            .replace("%m", "MM")       // Month (01-12)
-            .replace("%M", "mm")       // Minute (00-59)
-            .replace("%p", "a")        // AM/PM
-            .replace("%S", "ss")       // Second (00-59)
-            .replace("%U", "ww")       // Week number (00-53, Sunday start)
-            .replace("%w", "F")        // Weekday number (0-6, 0=Sunday)
-            .replace("%W", "ww")       // Week number (00-53, Monday start)
-            .replace("%x", "MM/dd/yy") // Local date format
-            .replace("%X", "HH:mm:ss") // Local time format
-            .replace("%y", "yy")       // Year last two digits (00-99)
-            .replace("%Y", "yyyy")     // Full year (2024)
-            .replace("%Z", "zzz")      // Timezone name
-            .replace("%%", "%")        // Literal %
-    }
 
     init {
         Logger.debug(DEBUG_TAG, "Initial context: $context")
@@ -64,7 +35,7 @@ class Renderer(private val nodes: List<Node>, private val context: MutableMap<St
                 }
                 value = value.replace("\\n", "\n")
                 if (hasNewline) {
-                    println(value)
+//                    println(value)
                 }
                 // Only apply trim if the value contains non-newline characters
                 if (node.trimLeft && value.any { it != '\n' }) {
@@ -154,11 +125,17 @@ class Renderer(private val nodes: List<Node>, private val context: MutableMap<St
                 result
             }
             is ConditionNode.BinaryOp -> {
-                val left = evaluateNode(node.left)
-                val right = evaluateNode(node.right)
                 val result = when (node.op) {
-                    "and" -> left && right
-                    "or" -> left || right
+                    "and" -> {
+                        val left = evaluateNode(node.left)
+                        val right = evaluateNode(node.right)
+                        left && right
+                    }
+                    "or" -> {
+                        val left = evaluateNode(node.left)
+                        val right = evaluateNode(node.right)
+                        left || right
+                    }
                     "==" -> {
                         val leftValue = evaluateExpression((node.left as ConditionNode.Literal).value)
                         val rightValue = evaluateExpression((node.right as ConditionNode.Literal).value)
@@ -168,6 +145,19 @@ class Renderer(private val nodes: List<Node>, private val context: MutableMap<St
                         val leftValue = evaluateExpression((node.left as ConditionNode.Literal).value)
                         val rightValue = evaluateExpression((node.right as ConditionNode.Literal).value)
                         leftValue != rightValue
+                    }
+                    "in" -> {
+                        // Handle the "in" operator
+                        val leftValue = evaluateExpression((node.left as ConditionNode.Literal).value)
+                        val rightValue = evaluateExpression((node.right as ConditionNode.Literal).value)
+                        Logger.debug(DEBUG_TAG, "Evaluating 'in' operator: $leftValue in $rightValue")
+
+                        when (rightValue) {
+                            is Map<*, *> -> rightValue.containsKey(leftValue)
+                            is List<*> -> rightValue.contains(leftValue)
+                            is String -> rightValue.contains(leftValue?.toString() ?: "")
+                            else -> false
+                        }
                     }
                     else -> throw TemplateException("Unsupported binary operator: ${node.op}")
                 }
@@ -207,7 +197,61 @@ class Renderer(private val nodes: List<Node>, private val context: MutableMap<St
     }
 
     private fun evaluateExpression(expr: String): Any? {
+        Logger.debug(DEBUG_TAG, "Evaluating expression: '$expr'")
         return when {
+            // 首先检查字符串字面量，避免被其他条件误判
+            expr.startsWith("'") && expr.endsWith("'") -> {
+                val result = expr.substring(1, expr.length - 1)
+                Logger.debug(DEBUG_TAG, "Single quoted string: '$expr' -> '$result'")
+                result
+            }
+            expr.startsWith("\"") && expr.endsWith("\"") -> {
+                val result = expr.substring(1, expr.length - 1)
+                Logger.debug(DEBUG_TAG, "Double quoted string: '$expr' -> '$result'")
+                result
+            }
+            // 然后检查基本字面量
+            expr == "none" -> null
+            expr == "true" -> true
+            expr == "false" -> false
+            // 接下来检查复杂表达式
+            expr.contains("[") && expr.contains("]") && expr.contains("'") -> {
+                // 处理复杂的索引访问，如 messages[0]['role'] 或 message['content']
+                val parts = expr.split("[", "]", "'").filter { it.isNotBlank() && it != "'" }
+                Logger.debug(DEBUG_TAG, "Complex expression parts: $parts")
+
+                var value: Any? = context[parts[0]]
+                for (i in 1 until parts.size) {
+                    val key = parts[i].trim()
+                    value = when {
+                        key.toIntOrNull() != null -> {
+                            // 数字索引
+                            val index = key.toInt()
+                            when (value) {
+                                is List<*> -> if (index < value.size) value[index] else null
+                                else -> null
+                            }
+                        }
+                        else -> {
+                            // 字符串键
+                            when (value) {
+                                is Map<*, *> -> value[key]
+                                is List<*> -> {
+                                    // 如果是列表，尝试获取每个元素的该属性
+                                    value.mapNotNull { item ->
+                                        when (item) {
+                                            is Map<*, *> -> item[key]
+                                            else -> null
+                                        }
+                                    }
+                                }
+                                else -> null
+                            }
+                        }
+                    }
+                }
+                value
+            }
             expr.contains("[") && expr.contains("]") -> {
                 val parts = expr.split("[", "]").filter { it.isNotBlank() }
                 Logger.debug(DEBUG_TAG, "Expression parts: $parts")
@@ -224,28 +268,42 @@ class Renderer(private val nodes: List<Node>, private val context: MutableMap<St
                     value
                 }
             }
+            expr == "length" -> {
+                // 处理 | length 过滤器的特殊情况
+                null
+            }
+            expr.contains("|") -> {
+                // 处理管道过滤器
+                val parts = expr.split("|").map { it.trim() }
+                var value = evaluateExpression(parts[0])
+                for (filter in parts.drop(1)) {
+                    value = applyFilter(value, filter)
+                }
+                value
+            }
+            expr.contains(" in ") && !expr.startsWith("'") && !expr.startsWith("\"") -> {
+                // 处理 'key' in dict 表达式
+                val parts = expr.split(" in ").map { it.trim() }
+                if (parts.size == 2) {
+                    val key = parts[0].trim('\'', '\"')
+                    val dict = evaluateExpression(parts[1])
+                    when (dict) {
+                        is Map<*, *> -> dict.containsKey(key)
+                        is List<*> -> dict.contains(key)
+                        else -> false
+                    }
+                } else false
+            }
             STRFTIME_REGEX.matches(expr) -> {
                 val matchResult = STRFTIME_REGEX.find(expr)
                 val format = matchResult?.groupValues?.get(1) ?: "%d %b %Y"
                 Logger.debug(DEBUG_TAG, "strftime_now original format: $format")
-                val androidFormat = convertStrftimeToAndroid(format)
-                Logger.debug(DEBUG_TAG, "strftime_now android format: $androidFormat")
-                try {
-                    val result = SimpleDateFormat(androidFormat, Locale.getDefault()).format(Date())
-                    Logger.debug(DEBUG_TAG, "strftime_now result: $result")
-                    result
-                } catch (e: IllegalArgumentException) {
-                    Logger.error(DEBUG_TAG, "Invalid date format: $androidFormat", e)
-                    SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date())
-                }
+                // 使用集中管理的函数
+                JinjaFunctions.strftimeNow(format)
             }
-            expr == "none" -> null
-            expr == "true" -> true
-            expr == "false" -> false
-            expr.startsWith("'") && expr.endsWith("'") -> expr.trim('\'')
-            expr.startsWith("\"") && expr.endsWith("\"") -> expr.trim('\"')
             else -> {
                 val value = context[expr]
+                Logger.debug(DEBUG_TAG, "Context lookup for '$expr': $value")
                 if (value == null) Logger.debug(DEBUG_TAG, "Expression $expr not found in context")
                 value
             }
@@ -254,33 +312,6 @@ class Renderer(private val nodes: List<Node>, private val context: MutableMap<St
 
     private fun applyFilter(value: Any?, filter: String): Any? {
         Logger.debug(DEBUG_TAG, "Applying filter $filter to $value")
-        return when (filter) {
-            "trim" -> value?.toString()?.trim()
-            "tojson(indent=4)" -> {
-                if (value == null) return "{}"
-                when (value) {
-                    is Map<*, *> -> {
-                        val entries = value.entries.map { (k, v) ->
-                            when (v) {
-                                is Map<*, *> -> {
-                                    val nestedJson = applyFilter(v, filter) as String
-                                    val innerJson = nestedJson.removeSurrounding("{", "}").trim()
-                                    val nestedEntries = v.entries.map { (nk, nv) ->
-                                        "\"$nk\": \"$nv\""
-                                    }.joinToString(",\n        ")
-                                    "\"$k\": {\n        $nestedEntries\n    }"
-                                }
-                                is List<*> -> "\"$k\": [${v.joinToString(", ") { "\"$it\"" }}]"
-                                else -> "\"$k\": \"$v\""
-                            }
-                        }.joinToString(",\n    ")
-                        "{\n    $entries\n}"
-                    }
-                    is List<*> -> "[\n    ${value.joinToString(",\n    ") { "\"$it\"" }}\n]"
-                    else -> "\"$value\""
-                }
-            }
-            else -> value
-        }
+        return JinjaFunctions.applyFilter(value, filter)
     }
 }
