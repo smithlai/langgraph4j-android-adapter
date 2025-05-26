@@ -3,6 +3,7 @@ package com.smith.lai.langgraph4j_android_adapter.jinjaparser
 import com.smith.lai.langgraph4j_android_adapter.jinjaparser.data.ConditionNode
 import com.smith.lai.langgraph4j_android_adapter.jinjaparser.data.ListNode
 import com.smith.lai.langgraph4j_android_adapter.jinjaparser.data.Node
+import com.smith.lai.langgraph4j_android_adapter.jinjaparser.data.TemplateException
 
 class Renderer(private val nodes: List<Node>, private val context: MutableMap<String, Any>) {
     companion object {

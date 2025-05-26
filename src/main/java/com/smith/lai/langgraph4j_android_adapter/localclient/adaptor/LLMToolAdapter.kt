@@ -9,5 +9,4 @@ abstract class LLMToolAdapter {
     }
 
     abstract fun createToolPrompt(toolSpecifications: List<ToolSpecification>): String
-    abstract fun parseToolCalls(response: String): List<ToolExecutionRequest>
 }

@@ -1,8 +1,10 @@
 package com.smith.lai.langgraph4j_android_adapter.jinjaparser
 
+import com.smith.lai.langgraph4j_android_adapter.jinjaparser.data.TemplateException
 import com.smith.lai.langgraph4j_android_adapter.jinjaparser.data.Token
 
 class Lexer(private val input: String) {
+
     private var pos = 0
 
     fun tokenize(): List<Token> {
