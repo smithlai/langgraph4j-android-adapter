@@ -1,4 +1,4 @@
-package com.smith.lai.langgraph4j_android_adapter.localclient
+package com.smith.lai.langgraph4j_android_adapter.localclient.toolschema
 
 import dev.langchain4j.agent.tool.ToolSpecification
 import dev.langchain4j.model.chat.request.json.JsonArraySchema
