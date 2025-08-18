@@ -79,14 +79,8 @@ android {
 }
 
 dependencies {
-    // LangGraph4j and LangChain4j dependencies
-    implementation("org.bsc.langgraph4j:langgraph4j-core:1.5.12")
-    implementation("org.bsc.langgraph4j:langgraph4j-langchain4j:1.5.12")
-    implementation("org.bsc.langgraph4j:langgraph4j-agent-executor:1.5.12")
-    implementation("dev.langchain4j:langchain4j:1.0.0-beta5")
-    implementation("dev.langchain4j:langchain4j-open-ai:1.0.0-beta5")
-    implementation("dev.langchain4j:langchain4j-ollama:1.0.0-beta5")
-
+    .....
+    ....
     // LangGraph4j Android Adapter
     implementation(project(":langgraph4j-android-adapter"))
 }

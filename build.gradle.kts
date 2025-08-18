@@ -67,14 +67,14 @@ android {
 
 dependencies {
     // LangGraph4j dependencies
-    implementation("org.bsc.langgraph4j:langgraph4j-core:1.5.12")
-    implementation("org.bsc.langgraph4j:langgraph4j-langchain4j:1.5.12")
-    implementation("org.bsc.langgraph4j:langgraph4j-agent-executor:1.5.12")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    api("org.bsc.langgraph4j:langgraph4j-core:1.5.12")
+    api("org.bsc.langgraph4j:langgraph4j-langchain4j:1.5.12")
+    api("org.bsc.langgraph4j:langgraph4j-agent-executor:1.5.12")
+    api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
     // LangChain4j dependencies - Moved to implementation for main
-    implementation("dev.langchain4j:langchain4j:1.0.0-beta5")
-    implementation("dev.langchain4j:langchain4j-open-ai:1.0.0-beta5")
-    implementation("dev.langchain4j:langchain4j-ollama:1.0.0-beta5")
+    api("dev.langchain4j:langchain4j:1.0.0-beta5")
+    api("dev.langchain4j:langchain4j-open-ai:1.0.0-beta5")
+    api("dev.langchain4j:langchain4j-ollama:1.0.0-beta5")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.google.code.gson:gson:2.13.1")
 
